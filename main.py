@@ -18,6 +18,8 @@ lcd_mute = False  # グローバル
 data_mute = False  # グローバル
 am_interval = 60  # Ambientへデータを送るサイクル（秒）
 co2_interval = 5  # MH-19Bへco2測定値要求コマンドを送るサイクル（秒）
+#slack_interval = 60 * 5  # MH-19Bへco2測定値要求コマンドを送るサイクル（秒）
+slack_interval = 30  # MH-19Bへco2測定値要求コマンドを送るサイクル（秒）
 TIMEOUT = 30  # 何らかの事情でCO2更新が止まった時のタイムアウト（秒）のデフォルト値
 CO2_RED = 1000  # co2濃度の換気閾値（ppm）のデフォルト値
 co2 = 0
@@ -111,7 +113,6 @@ def draw_co2():
         fc = lcd.BLACK
     else:
         if co2 >= CO2_RED:  # CO2濃度閾値超え時は文字が赤くなる
-            slack.send2slack('#sandbox', 'taisyo', 'co2: {:d}'.format(co2))
             fc = lcd.RED
             if lcd_mute == True:  # CO2濃度閾値超え時はLCD ON
                 axp.setLDO2Vol(2.7)  # バックライト輝度調整（中くらい）
@@ -179,6 +180,7 @@ btnB.wasPressed(buttonB_wasPressed)
 
 # タイムカウンタ初期値設定
 co2_tc = utime.time()
+slack_tc = utime.time()
 
 
 # メインルーチン
@@ -196,6 +198,11 @@ while True:
             draw_co2()
             print(str(co2) + ' ppm / ' + str(co2_tc))
         utime.sleep(1)
+
+    if (utime.time() - slack_tc) >= slack_interval:  # co2要求コマンド送信
+        slack_tc = utime.time()
+        if co2 >= CO2_RED:
+            slack.send2slack('#notify-co2', 'co2sensor', 'co2: {:d}'.format(co2))
 
     if (utime.time() - co2_tc) >= TIMEOUT:  # co2応答が一定時間無い場合はCO2値表示のみオフ
         data_mute = True
