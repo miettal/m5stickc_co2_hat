@@ -6,7 +6,7 @@ import json
 def send2slack(channel, username, text):
     host = 'hooks.slack.com'
     port = 443
-    path = 'services/T018UBZFSL8/B017XQSNUPQ/uqLvRpkUHe2qiaLZEW8jHsSA'
+    path = '/services/T018UBZFSL8/B017XQSNUPQ/uqLvRpkUHe2qiaLZEW8jHsSA'
 
     ai = socket.getaddrinfo(host, port)
     addr = ai[0][-1]
